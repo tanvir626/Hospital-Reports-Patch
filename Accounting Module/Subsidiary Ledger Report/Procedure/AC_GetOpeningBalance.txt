@@ -1,0 +1,38 @@
+USE [KH_HMSERP]
+GO
+/****** Object:  StoredProcedure [dbo].[AC_GetOpeningBalance]    Script Date: 10/6/2025 8:42:29 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- AC_GetOpeningBalance 'ACC_VoucherKH', '70', '07/01/2023'
+
+ALTER PROCEDURE [dbo].[AC_GetOpeningBalance]
+
+@VoucherTable NVARCHAR(20),
+@AccountID NVARCHAR(20),
+@TillDate NVARCHAR(20)
+
+
+AS
+
+BEGIN
+
+DECLARE @SQL NVARCHAR(MAX)
+
+SET
+
+@SQL = 'SELECT ISNULL(SUM(DebitAmount),0) - ISNULL(SUM(CreditAmount),0) AS ClosingBalance
+
+FROM ' + @VoucherTable + '
+
+WHERE AccountID = ''' + @AccountID + '''
+AND Status = ''A'' AND CONVERT(DATE, VoucherDate) < CONVERT(DATE, ''' + @TillDate + ''')'
+
+PRINT @SQL
+
+EXEC SP_EXECUTESQL @SQL
+
+END
+
+

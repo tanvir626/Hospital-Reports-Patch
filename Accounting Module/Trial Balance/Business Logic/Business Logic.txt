@@ -1,0 +1,83 @@
+private void LoadTrialBalance(DateTime startDate, DateTime endDate)
+{
+    ReportViewer1.ProcessingMode = ProcessingMode.Local;
+    ReportViewer1.LocalReport.ReportPath = Server.MapPath("~/bin/Reports/AccReports/Rpt_TrialBalance.rdlc");
+
+    var result = account.GetTrialBalance(startDate, endDate);
+    if (result.Count == 0)
+    {
+        return;
+    }
+
+    var company = db.HMS_Company.Where(x => x.CompanyID == utilityService.CompanyID).FirstOrDefault();
+
+
+    string dateRange = "";
+    if (startDate < endDate) { dateRange = "Date from: " + startDate.ToString("dd-MM-yyyy") + " to " + endDate.ToString("dd-MM-yyyy"); }
+    else { dateRange = "Date: " + startDate.ToString("dd-MM-yyyy"); }
+
+    ReportParameter prm_1 = new ReportParameter("dateRange", dateRange);
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_1 });
+
+    ReportParameter prm_2 = new ReportParameter("companyName", company.CompanyName);
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_2 });
+
+    ReportParameter prm_3 = new ReportParameter("companyAddress", company.Company_Address);
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_3 });
+
+    ReportParameter prm_4 = new ReportParameter("companyPhone", company.Company_Phone);
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_4 });
+
+    ReportParameter prm_5 = new ReportParameter("reportTitle", "Trial Balance");
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_5 });
+
+    ReportParameter prm_p = new ReportParameter("printedBy", utilityService.UserID);
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_p });
+
+    ReportDataSource datasource = new ReportDataSource("DS_Accounts", result);
+
+    ReportViewer1.LocalReport.DataSources.Clear();
+    ReportViewer1.LocalReport.DataSources.Add(datasource);
+
+    ReportViewer1.LocalReport.Refresh();
+}
+
+ public List<VM_TrialBalance> GetTrialBalance(DateTime startDate, DateTime endDate)
+ {
+     var _accTable = new SqlParameter("@AccTable", "ACC_AccountKH");
+     var _vchTable = new SqlParameter("@VoucherTable", "ACC_VoucherKH");
+     var _fromDate = new SqlParameter("@FromDate", startDate);
+     var _toDate = new SqlParameter("@ToDate", endDate);
+
+     db.Database.CommandTimeout = 300000;
+
+     string SP_SQL = "AC_GetTrialBalance @AccTable, @VoucherTable, @FromDate, @ToDate";
+     var data = (db.Database.SqlQuery<VM_TrialBalance>(SP_SQL, _accTable, _vchTable, _fromDate, _toDate)).ToList();
+
+     for (int i = 0; i < data.Count; i++)
+     {
+         if (data[i].OpeningBalance < 0)
+         {
+             data[i].OpeningCredit = data[i].Balance * (-1);
+             data[i].OpeningDebit = 0;
+         }
+         else if (data[i].OpeningBalance >= 0)
+         {
+             data[i].OpeningDebit = data[i].Balance;
+             data[i].OpeningCredit = 0;
+         }
+
+         if (data[i].ClosingBalance < 0)
+         {
+             data[i].ClosingCredit = data[i].ClosingBalance * (-1);
+             data[i].ClosingDebit = 0;
+         }
+         else if (data[i].OpeningBalance >= 0)
+         {
+             data[i].ClosingDebit = data[i].ClosingBalance;
+             data[i].ClosingCredit = 0;
+         }
+     }
+
+     return data;
+ }

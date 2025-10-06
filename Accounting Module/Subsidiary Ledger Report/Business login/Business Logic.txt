@@ -1,0 +1,192 @@
+private void LoadSubsidiaryLedger(int accountID, DateTime startDate, DateTime endDate)
+{
+    ReportViewer1.ProcessingMode = ProcessingMode.Local;
+    ReportViewer1.LocalReport.ReportPath = Server.MapPath("~/bin/Reports/AccReports/Rpt_SubsidiaryLedger.rdlc");
+
+    var result = account.GetSubsidiaryLedgerNew(accountID, startDate, endDate);
+    if (result.Count == 0)
+    {
+        return;
+    }
+
+    var accInfo = account.GetAccountByID(accountID); //db.ACC_Account.Where(x => x.AccountID == accountID).FirstOrDefault();
+
+    var company = db.HMS_Company.Where(x => x.CompanyID == utilityService.CompanyID).FirstOrDefault();
+
+    string reportTitle = "Subsidiary Ledger";
+
+    string dateRange = "";
+    if (startDate < endDate) { dateRange = "Date from: " + startDate.ToString("dd-MM-yyyy") + " to " + endDate.ToString("dd-MM-yyyy"); }
+    else { dateRange = "Date: " + startDate.ToString("dd-MM-yyyy"); }
+
+    ReportParameter prm_1 = new ReportParameter("dateRange", dateRange);
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_1 });
+
+    ReportParameter prm_2 = new ReportParameter("companyName", company.CompanyName);
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_2 });
+
+    ReportParameter prm_3 = new ReportParameter("companyAddress", company.Company_Address);
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_3 });
+
+    ReportParameter prm_4 = new ReportParameter("companyPhone", company.Company_Phone);
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_4 });
+
+    ReportParameter prm_5 = new ReportParameter("reportTitle", reportTitle);
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_5 });
+
+    ReportParameter prm_6 = new ReportParameter("accountCode", accInfo.AccountCode.ToString());
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_6 });
+
+    ReportParameter prm_p = new ReportParameter("printedBy", utilityService.UserID);
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_p });
+
+    int count = result.Count - 1;
+    decimal balance = result[count].Balance ?? 0;
+
+    ReportParameter prm_cb = new ReportParameter("closingBalance", balance.ToString("0.00"));
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_cb });
+
+    ReportDataSource datasource = new ReportDataSource("DS_Account", result);
+
+    ReportViewer1.LocalReport.DataSources.Clear();
+    ReportViewer1.LocalReport.DataSources.Add(datasource);
+
+    ReportViewer1.LocalReport.Refresh();
+}
+
+public List<VM_Voucher> GetSubsidiaryLedgerNew(int accountID, DateTime startDate, DateTime endDate)
+{
+    #region Get Opening Balance
+    var _vchTable1 = new SqlParameter("@VoucherTable", "ACC_VoucherKH");
+    var _accountID = new SqlParameter("@AccountID", accountID);
+    var _tillDate = new SqlParameter("@TillDate", startDate);
+
+    string SP_SQL1 = "AC_GetOpeningBalance @VoucherTable, @AccountID, @TillDate";
+    var balanceInfo = (db.Database.SqlQuery<VM_Voucher>(SP_SQL1, _vchTable1, _accountID, _tillDate)).FirstOrDefault();
+
+    var accInfo = GetAccountByID(accountID); //db.ACC_Account.Where(x => x.AccountID == accountID).FirstOrDefault();
+
+    string str = accInfo.AccountCode.ToString().Substring(0, 1);
+    if (str == "2")
+    {
+        List<VM_Voucher> ledgerData = GetSubsidiaryLedgerForLiabilities(accountID, startDate, endDate);
+        return ledgerData;
+    }
+
+    //var totalDebit = balanceInfo.DebitAmount;
+    //var totalCredit = balanceInfo.CreditAmount;
+    var openingBalance = balanceInfo.ClosingBalance;
+
+    if (openingBalance == null) { openingBalance = 0; }
+
+    string balanceType = "";
+    VM_Voucher openingRow = new VM_Voucher();
+    openingRow.DebitAmount = 0;
+    openingRow.CreditAmount = 0;
+    if (openingBalance < 0)
+    {
+        balanceType = "Cr.";
+        openingBalance = openingBalance * (-1);
+        openingRow.CreditAmount = openingBalance;
+    }
+    else
+    {
+        balanceType = "Dr.";
+        openingRow.DebitAmount = openingBalance;
+    }
+
+
+    openingRow.AccountID = accountID;
+    openingRow.AccountName = accInfo.AccountName;
+    openingRow.Description = "**** OPENING BALANCE ****";
+    openingRow.Balance = openingBalance;
+    openingRow.BalanceType = balanceType;
+
+    #endregion
+
+    #region Get Main Data
+    var _accTable = new SqlParameter("@AccTable", "ACC_AccountKH");
+    var _vchTable = new SqlParameter("@VoucherTable", "ACC_VoucherKH");
+    var _accID = new SqlParameter("@AccountID", accountID);
+    var _fromDate = new SqlParameter("@FromDate", startDate);
+    var _toDate = new SqlParameter("@ToDate", endDate);
+
+    string SP_SQL = "ACC_GetSubsidiaryLedgerDataNew @AccTable, @VoucherTable, @AccountID, @FromDate, @ToDate";
+    var data = (db.Database.SqlQuery<VM_Voucher>(SP_SQL, _accTable, _vchTable, _accID, _fromDate, _toDate)).ToList();
+
+    for (int i = 0; i < data.Count; i++)
+    {
+        if (data[i].ChequeNo == "")
+        {
+            data[i].ChequeDate = null;
+            data[i].ChequeNo = "";
+        }
+
+        if (i == 0)
+        {
+            //if (balanceType == "Cr.")
+            //{
+            //    openingBalance = openingBalance * (-1);
+            //}
+
+            data[i].Balance = openingBalance - data[i].CreditAmount + data[i].DebitAmount;
+
+            //if (data[i].Balance < 0)
+            //{
+            //    data[i].Balance = data[i].Balance * (-1);
+            //    data[i].BalanceType = "Cr.";
+            //}
+        }
+        else
+        {
+            //if (data[i - 1].BalanceType == "Cr.")
+            //{
+            //    data[i - 1].Balance = data[i - 1].Balance * (-1);
+            //}
+
+            data[i].Balance = data[i - 1].Balance - data[i].CreditAmount + data[i].DebitAmount;
+
+            //if (data[i].Balance < 0)
+            //{
+            //    data[i].Balance = data[i].Balance * (-1);
+            //    data[i].BalanceType = "Cr.";
+            //}
+            //else
+            //{
+            //    data[i].BalanceType = "Dr.";
+            //}
+        }
+    }
+
+    #endregion
+
+    #region Set Closing Balance
+    data.Insert(0, openingRow);
+
+    var closingBalance = data[data.Count - 1].Balance;
+
+    VM_Voucher closingRow = new VM_Voucher();
+
+    //if (closingBalance < 0)
+    //{
+    //    balanceType = "Cr.";
+    //    closingBalance = closingBalance * (-1);
+    //}
+    //else
+    //{
+    //    balanceType = "Dr.";
+    //}
+
+    closingRow.AccountID = accountID;
+    closingRow.AccountName = accInfo.AccountName;
+    closingRow.Description = "**** CLOSING BALANCE ****";
+    closingRow.DebitAmount = 0;
+    closingRow.CreditAmount = 0;
+    closingRow.Balance = closingBalance;
+    closingRow.BalanceType = balanceType;
+
+    data.Add(closingRow);
+    #endregion
+
+    return data;
+}

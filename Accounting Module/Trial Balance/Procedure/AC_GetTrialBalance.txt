@@ -1,0 +1,56 @@
+USE [KH_HMSERP]
+GO
+/****** Object:  StoredProcedure [dbo].[AC_GetTrialBalance]    Script Date: 10/6/2025 8:52:50 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+-- AC_GetTrialBalance 'ACC_AccountKH', 'ACC_VoucherKH', '2024/08/01', '2024/08/31'
+
+ALTER PROCEDURE [dbo].[AC_GetTrialBalance]
+
+@AccTable NVARCHAR(20),
+@VoucherTable NVARCHAR(20),
+@FromDate NVARCHAR(20),
+@ToDate NVARCHAR(20)
+
+AS
+
+BEGIN
+
+DECLARE @SQL NVARCHAR(MAX)
+
+SET
+
+@SQL = 'SELECT
+
+V.AccountID,
+A.AccountName,
+P.AccountCode AS ParentCode,
+P.AccountName AS ParentName,
+A.AccountCode,
+
+(SELECT ISNULL(SUM(DebitAmount),0) - ISNULL(SUM(CreditAmount),0) FROM ' + @VoucherTable + ' WHERE AccountID = V.AccountID AND Status = ''A'' AND CONVERT(DATE, VoucherDate) < ''' + @FromDate + ''') AS OpeningBalance,
+-- dbo.ACC_GetOpeningBalance(V.AccountID, @FromDate) AS OpeningBalance,
+
+ISNULL(SUM(V.DebitAmount),0) AS CreditAmount,
+ISNULL(SUM(V.CreditAmount),0) AS DebitAmount,
+
+(SELECT ISNULL(SUM(DebitAmount),0) - ISNULL(SUM(CreditAmount),0) FROM ' + @VoucherTable + ' WHERE AccountID = V.AccountID AND Status = ''A'' AND CONVERT(DATE, VoucherDate) < ''' + @FromDate + ''') + ISNULL(SUM(V.DebitAmount),0) - ISNULL(SUM(V.CreditAmount),0) AS ClosingBalance
+
+FROM  ' + @VoucherTable + ' V
+INNER JOIN ' + @AccTable + ' A ON A.AccountID = V.AccountID 
+INNER JOIN ' + @AccTable + ' P ON A.ParentID = P.AccountID 
+
+WHERE V.VoucherNumber IN (SELECT VoucherNumber FROM ' + @VoucherTable + ')
+AND VoucherDate BETWEEN ''' + @FromDate + '''  AND ''' + @ToDate + '''
+
+GROUP BY V.AccountID, A.AccountName, P.AccountCode, P.AccountName, A.AccountCode'
+
+PRINT @SQL
+
+EXEC SP_EXECUTESQL @SQL
+
+END
+
