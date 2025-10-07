@@ -37,6 +37,9 @@ private void LoadSubsidiaryLedger(int accountID, DateTime startDate, DateTime en
     ReportParameter prm_6 = new ReportParameter("accountCode", accInfo.AccountCode.ToString());
     ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_6 });
 
+    ReportParameter prm_7 = new ReportParameter("AccountName", accInfo.AccountName);
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_7 });
+
     ReportParameter prm_p = new ReportParameter("printedBy", utilityService.UserID);
     ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_p });
 
@@ -53,7 +56,6 @@ private void LoadSubsidiaryLedger(int accountID, DateTime startDate, DateTime en
 
     ReportViewer1.LocalReport.Refresh();
 }
-
 public List<VM_Voucher> GetSubsidiaryLedgerNew(int accountID, DateTime startDate, DateTime endDate)
 {
     #region Get Opening Balance

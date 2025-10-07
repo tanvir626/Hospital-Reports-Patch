@@ -1,0 +1,19 @@
+in term of asset and expence
+Current balance= (opening + Debit)-credit
+
+in term of income and liability
+Current balance= (opening + credit)-Debit
+
+note;
+1=Asset, 2=Liability,3=Owner's Eqity, 
+4=Income, 5=Expence
+
+*income,payable,capital=Credit
+*other are Debit
+
+*
+(Asset+Expence+OE)= (+) holay debit ,(-) holay cradit
+(Income+liability)= (+) holay Cradit ,(-) holay Debit
+
+
+
