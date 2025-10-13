@@ -1,0 +1,23 @@
+else if (reportTypeID == 97)
+{
+
+    ReportViewer1.ProcessingMode = ProcessingMode.Local;
+    ReportViewer1.LocalReport.ReportPath = Server.MapPath("~/Reports/HMSReports/Gender_Wise_AdmissionSummarybyDeptDate.rdlc");
+    ReportParameter prm_1 = new ReportParameter("printedBy", utilityService.UserID);
+    ReportParameter prm_2;
+
+    if (fromDate == toDate)
+    {
+        prm_2 = new ReportParameter("reportTitle", "Admited Patient(Gender wise) to " + Convert.ToDateTime(fromDate).ToString("M/d/yyyy"));
+    }
+    else
+    {
+        prm_2 = new ReportParameter("reportTitle", "Admited Patient(Gender wise) from " + Convert.ToDateTime(fromDate).ToString("M/d/yyyy") + " to " + Convert.ToDateTime(toDate).ToString("M/d/yyyy"));
+    }
+    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_1, prm_2 });
+    var result = tokenReportService.GetGenderWiseSummary(fromDate, toDate).ToList();
+    ReportDataSource ds = new ReportDataSource("DSHMS", result);
+    ReportViewer1.LocalReport.DataSources.Clear();
+    ReportViewer1.LocalReport.DataSources.Add(ds);
+
+}

@@ -1,0 +1,3163 @@
+﻿@model Model.ViewModel.VM_Patient
+@{
+    ViewBag.Title = "HMS Reports";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+
+    /* .select2-results__options {
+        font-size: 14px !important;
+    }*/
+
+    .reportTitle {
+        font-weight: bold;
+        color: maroon;
+    }
+
+    .form-control {
+        /*height: 30px;*/
+        font-size: 14px !important;
+    }
+
+    .loader_overlay {
+        height: 100%;
+        width: 100%;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        /*background-color: rgb(0,0,0);*/
+        /*background-color: rgba(0,0,0, 0.9);*/
+        /*overflow-x: hidden;*/
+        transition: 0.5s;
+        /*display: none;*/
+        backdrop-filter: blur(.5px);
+    }
+
+    .loader_overlay-content {
+        position: relative;
+        top: 25%; /* 25% from the top */
+        width: 100%; /* 100% width */
+        text-align: center; /* Centered text/links */
+        margin-top: 30px; /* 30px top margin to avoid conflict with the close button on smaller screens */
+    }
+</style>
+
+<div id="divLoader" class="loader_overlay">
+    <!-- Overlay content -->
+    <div class="loader_overlay-content">
+        <img src="~/lib/img/spnner.gif" width="100" height="100" style="margin-top:50px; margin-left:20px;" alt="Loader" />
+    </div>
+</div>
+
+<div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header form-group">
+        <div class="container-fluid ">
+            <div class="card card-info" style="">
+                <div class="card-header" style="padding: .45rem; margin-top:-10px;">
+                    <h5 class="panel-title pull-left" style="padding-top: 0px;">
+                        <i class="nav-icon fas fa-list" style="font-size: 16px"></i> HMS (OP/IP/OT) Reports
+                    </h5>
+                </div>
+            </div>
+        </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content" style="margin-top:-10px;">
+        <div class="container-fluid">
+
+            <div class="card card-default">
+
+                <!-- /.card-header -->
+                <div class="card-body" style="background-color: #dcf0f8;">
+
+                    <div class="form-group row" style="margin: -15px -15px -15px -15px; ">
+
+                        <div class="col-sm-5" style="background-color: #c6daff; ">
+
+                            <div class="form-group" style="margin: 5px 0px 0px 0px;">
+                                <label style="color:maroon;margin-bottom:0px">Report Type<font color="red">*</font></label>
+
+                                <select class="chosen-select form-control" id="ReportTypeID">
+                                    <option value="0">Select Report Type</option>
+
+                                    <option value="" class="reportTitle" disabled>OP Token Reports</option>
+                                    <option value="19">1. OP Patient Summary</option>
+                                    <option value="37">2. OP Patient Summary (Daily)</option>
+                                    <option value="62">3. OP Doctor wise Patient Summary</option>
+                                    <option value="27">4. OP Doctor wise Patient Summary (Daily)</option>
+                                    <option value="35">5. OP Patient Details (Dept wise)</option>
+                                    <option value="28">6. OP Specialist Doctor Schedule</option>
+                                    <option value="1">7. Patient Registration Report</option>
+                                    <option value="2">8. OP Token Details Report</option>
+                                    <option value="29">9. OP Token Summary Gender wise without Children</option>
+                                    <option value="30">10. OP Token Summary Gender wise of Children</option>
+                                    <option value="4">11. OP Token Distribution Summary</option>
+                                    <option value="5">12. OP Token Distribution Details</option>
+                                    <option value="7">13. Patient Token Statistics Details</option>
+                                    <option value="44">14. Monthly Out Patient Statistics</option>
+                                    <option value="53">15. Monthly Out Patient Statistics (Doctor wise)</option>
+
+                                    <option value="" class="reportTitle" disabled>Collection Reports</option>
+                                    <option value="13">16. User wise Collection Summary</option>
+                                    <option value="31">17. User wise Credit Details</option>
+                                    <option value="32">18. User wise Discount Details</option>
+                                    <option value="14">19. Token Collection Summary</option>
+                                    <option value="15">20. Total Collection Summary</option>
+                                    <option value="16">21. Service wise Analysis</option>
+                                    <option value="54">22. Service Type wise Analysis</option>
+                                    <option value="55">22.1.Service wise (KEWA) Analysis</option>
+                                    <option value="43">23. Service wise Collection Summary</option>
+                                    <option value="24">24. Service Type wise Collection Summary</option>
+                                    <option value="25">25. Doctor wise Collection Summary</option>
+                                    <option value="60">25.1. Service wise (KEWA) Collection Summary</option>
+                                    <option value="24">26. Service Type wise Collection Summary</option>
+                                    <option value="61">26.1. Doctor wise Collection Summary</option>
+
+                                    <option value="70">27. OP Visited Doctor wise Collection Summary</option>
+                                    <option value="65">28. Doctor wise Collection Details</option>
+                                    <option value="66">29. Doctor wise Collection Summary Comparative Date</option>
+                                    <option value="26">30. Department wise Collection Summary</option>
+                                    <option value="46">31. Monthly Service Collection Statistics Report</option>
+
+                                    <option value="68">32. CHRF Lab Bill Collection Details</option>
+                                    <option value="69">33. CHRF Lab Bill Collection Summary (Doctor wise)</option>
+
+                                    <option value="" class="reportTitle" disabled>Eye Reports</option>
+                                    <option value="8">34. Eye Patient Statistics Report</option>
+                                    <option value="20">35. Eye OP Registration Report Gender wise</option>
+                                    <option value="18">36. Eye OP Refraction Details</option>
+
+                                    <option value="" class="reportTitle" disabled>Billing Reports</option>
+                                    <option value="23">37. Patient wise Bill Register Report</option>
+
+                                    <option value="" class="reportTitle" disabled>IP Reports</option>
+                                    <option value="49">38. Admission (Dept wise) Summary Report</option>
+                                    <option value="50">39. Admission (Ward wise) Summary Report</option>
+                                    <option value="39">40. Admitted Patient (Dept wise) Summary Report</option>
+                                    <option value="48">41. Admitted Patient (Ward wise) Summary Report</option>
+                                    <option value="97">87. Admitted Patient (Gender wise) Summary Report</option>
+                                    <option value="51">42. Discharged Patient (Dept wise) Summary Report</option>
+                                    <option value="52">43. Discharged Patient (Ward wise) Summary Report</option>
+                                    <option value="74">44. Discharged Patient Details Report (Ward wise)</option>
+                                    <option value="90">44.1. Patient Admission Details</option>
+                                    <option value="40">45. Admission Details by Project</option>
+                                    <option value="36">46. IP Medicine Request Summary to Pharmacy (Ward wise)</option>
+                                    <option value="33">47. IP Medicine Request Summary to Pharmacy (Patient wise)</option>
+                                    <option value="34">48. IP Medicine Request Details to Pharmacy</option>
+                                    <option value="47">49. Monthly In Patient (Dept wise) Statistics Report</option>
+                                    <option value="45">50. Monthly In Patient (Ward wise) Statistics Report</option>
+
+                                    <option value="" class="reportTitle" disabled>OT Reports</option>
+                                    <option value="10">51. Pre-Operative Advice Report</option>
+                                    <option value="11">52. OT Report</option>
+                                    <option value="12">53. OT Details Report</option>
+                                    <option value="56">54. Doctor wise OT Summary by Range</option>
+
+                                    <option value="" class="reportTitle" disabled>OP Treatment Reports</option>
+                                    <option value="17">55. OP Diagnosis/Age wise Details</option>
+                                    <option value="42">56. OP Doctor wise Treatment Analysis</option>
+                                    <option value="38">57. OP Diagnosis wise Admission Analysis</option>
+                                    <option value="21">58. OP Physiotherapy Schedule Summary</option>
+                                    <option value="41">59. OP Physiotherapy Schedule Details</option>
+                                    <option value="22">60. OP Chemotherapy Schedule Report</option>
+                                    <option value="58">61. OP Doctor wise Medicine Advised</option>
+                                    <option value="67">62. OP Doctor wise Medicine Advised (Comparative Date)</option>
+                                    <option value="57">63. OP Doctor wise Medicine Advised (Monthly)</option>
+                                    <option value="64">64. OP Doctor wise Medicine Advised Summary</option>
+                                    <option value="63">65. OP Doctor wise Medicine Advised Details</option>
+                                    <option value="71">66. OP Doctor wise KPL Medicine Advised Incentive Summary</option>
+                                    <option value="73">67. OP Doctor wise KPL Medicine Advised Incentive Comparative Summary</option>
+                                    <option value="75">68. OP Doctor wise KPL Medicine Advised Incentive Comparative Summary (by Item)</option>
+                                    <option value="72">69. OP Doctor wise KPL Medicine Advised Incentive Details</option>
+
+                                    <option value="" class="reportTitle" disabled>Miscellaneous Reports</option>
+                                    <option value="77">70. OT Procedure Summary By Month</option>
+                                    <option value="78">71. OT Procedure Summary By OT Type</option>
+                                    <option value="79">72. Area Wise Patient Summary</option>
+                                    <option value="80">73. All Service Collection Summary</option>
+                                    <option value="81">74. Monthly Service Summary Statistics </option>
+                                    <option value="82">75. Eye Daily Statistical Summary By Date</option>
+                                    <option value="83">76. Treatment Cost Certificate</option>
+
+                                    <option value="" class="reportTitle" disabled>OT Consumable & Others Report</option>
+                                    <option value="84">77. OT Consumable Item Stock Report</option>
+                                    <option value="85">78. OT Due List Report</option>
+                                    <option value="86">79. OT Comsume Wise OT Process Report</option>
+                                    <option value="87">80. Category wise OT Comsumable Report</option>
+                                    <option value="88">81. Date wise Comsumable Item Summary Report</option>
+                                    <option value="89">82. Date wise Refund Details Report</option>
+                                    <option value="91">83. Diagnosis Wise Patient Analysis</option>
+                                    <option value="92">84. Symptom Wise Patient Analysis</option>
+                                    <option value="95">85. User Wise Collection Details</option>
+                                    <option value="96">86. OT Advice Report</option>
+
+                                </select>
+
+                            </div>
+
+                            <div class="form-group row" style="margin-top:5px">
+
+                                <div class="col-sm-5">
+                                    <div class="form-group">
+                                        <button class="btn btn-primary" onclick="ReportViewer()" formtarget="_blank"><i class="fa fa-eye"></i>&nbsp;View Report</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-3" style="background-color: #b1c9f6;">
+
+                            <div class="form-group row" style="margin-top: 5px; margin-bottom: 0px;">
+                                <div class="col-sm-6">
+                                    From Date<font color="red">*</font>
+                                    @Html.EditorFor(model => model.FromDate, new { htmlAttributes = new { @id = "txtFromDate", @class = "form-control", @placeholder = "mm/dd/yyyy", @autocomplete = "off", style = "width:120px" } })
+                                </div>
+                                <div class="col-sm-6">
+                                    To Date<font color="red">*</font>
+                                    @Html.EditorFor(model => model.ToDate, new { htmlAttributes = new { @id = "txtToDate", @class = "form-control", @placeholder = "mm/dd/yyyy", @autocomplete = "off", style = "width:120px" } })
+                                </div>
+                            </div>
+
+                            <div class="form-group row" style="margin-bottom: 0px;">
+                                <div class="col-sm-6">
+                                    From Time
+                                    <input type="time" id="StartTime" class="form-control" name="appt" style="width: 120px;">
+                                </div>
+                                <div class="col-sm-6">
+                                    To Time
+                                    <input type="time" id="EndTime" class="form-control" name="appt" style="width: 120px;">
+                                </div>
+                            </div>
+
+                            <div class="form-group row" style="margin-bottom: 0px;">
+
+                                <div style="width:6%"></div>
+                                <div style="width:41%">
+                                    Patient Type
+                                    @Html.DropDownList("PatientType", new List<SelectListItem>
+                                        {
+                                            new SelectListItem {Text = "OP", Value = "OP"},
+                                            new SelectListItem {Text = "IP", Value = "IP"},
+                                        }, "Select", new { @class = "chosen-select form-control" })
+                                </div>
+
+                                <div style="width:2%"></div>
+                                <div style="width:51%">
+                                    Patient ID
+                                    <input id="PatientID" type="text" class="form-control" />
+                                </div>
+
+                            </div>
+
+                            <div class="form-group row" style="margin-bottom: 0px;">
+                                <div style="width:6%"></div>
+                                <div style="width:66%">
+                                    Service Type
+                                    @Html.DropDownListFor(model => model.ServiceTypeID, null, "Select Service Type", htmlAttributes: new { @id = "ddlServiceType", @class = "chosen-select form-control" })
+                                </div>
+                                <div style="width:1%"></div>
+                                <div style="width:27%">
+                                    Sum. Type
+                                    @Html.DropDownList("SummaryType", new List<SelectListItem>
+                                        {
+                                            new SelectListItem {Text = "Qty", Value = "Qty"},
+                                            new SelectListItem {Text = "Amt", Value = "Amt"},
+                                            new SelectListItem {Text = "Monthly", Value = "Monthly"},
+                                        }, "Select", new { @class = "chosen-select form-control" })
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0px; width: 106%;">
+                                Service
+                                @Html.DropDownList("ServiceID", new SelectList(" "), "Select Service", htmlAttributes: new { @id = "ddlService", @class = "chosen-select form-control" })
+                            </div>
+
+                            <div class="form-group row" style="margin-bottom: 0px; width: 119%;">
+                                <div class="col-sm-6">
+                                    Age From
+                                    <input id="AgeFrom" type="number" class="form-control" />
+                                </div>
+                                <div class="col-sm-6">
+                                    Age To
+                                    <input id="AgeTo" type="number" class="form-control" />
+                                </div>
+
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0px; width: 106%;">
+                                Discharge Type
+                                @Html.DropDownList("DischargeType", new List<SelectListItem>
+                                       {
+                                           new SelectListItem {Text = "Improved", Value = "Improved"},
+                                           new SelectListItem {Text = "Reffered", Value = "Reffered"},
+                                           new SelectListItem {Text = "DOR", Value = "DOR"},
+                                           new SelectListItem {Text = "DORB", Value = "DORB"},
+                                           new SelectListItem {Text = "Death", Value = "Death"},
+                                       }, "Select", new { @class = "chosen-select form-control" })
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 5px; width: 106%;">
+
+                                Name of Physiotherapy
+                                @Html.DropDownList("PhysioTherapyID", null, "Select Therapy", htmlAttributes: new { @id = "ddlPT", @class = "chosen-select form-control" })
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 5px; width: 106%;">
+
+                                Admission ID
+                                <input type="text" class="form-control" id="txtAdmissionID" disabled />
+                            </div>
+                            <div class="form-group" style="margin-bottom: 5px; width: 106%;">
+
+                                Category
+                                @Html.DropDownList("CategoryID", null, "Select Category", htmlAttributes: new { @id = "ddlCategory", @class = "chosen-select form-control" })
+                            </div>
+                            
+
+                        </div>
+
+                        <div class="col-sm-4" style="background-color: #b1c9f6">
+
+                            <div class="form-group" id="divOPServiceType" style="margin: 5px 0px 0px 0px;">
+                                OP Service Type
+                                @Html.DropDownListFor(model => model.OPServiceTypeID, null, "Select OP service Type", htmlAttributes: new { @id = "ddlOPServiceType", @class = "chosen-select form-control" })
+                            </div>
+
+
+                            <div class="form-group row" style="margin-bottom: 0px;">
+                                <div class="col-sm-7">
+                                    District
+                                    @Html.DropDownListFor(model => model.Pres_DistrictID, null, "Select District", htmlAttributes: new { @id = "ddlDistrict", @class = "chosen-select form-control" })
+                                </div>
+
+                                <div class="col-sm-5">
+                                    No. Of Patient
+                                    <input type="text" id="txtNoOfPatient" value="0" class="form-control" />
+                                </div>
+                            </div>
+
+                            <div class="form-group row" style="margin-bottom: 0px;">
+                                <div class="col-sm-7">
+                                    Upazila
+                                    @*@Html.DropDownListFor(model => model.Pres_UpazilaID, new SelectList(""), "Select District", htmlAttributes: new { @id = "ddlUpazila", @class = "chosen-select form-control"})*@
+
+                                    <select id="ddlUpazila" style="background:white;" class="chosen-select form-control" multiple>
+                                    </select>
+
+                                </div>
+
+                                <div class="col-sm-5">
+                                    Union
+                                    @*@Html.DropDownListFor(model => model.PresUnionID, new SelectList(""), "Select District", htmlAttributes: new { @id = "ddlUnion", @class = "chosen-select form-control" })*@
+                                    <select id="ddlUnion" style="background:white;" class="chosen-select form-control" multiple>
+                                    </select>
+                                </div>
+                            </div>
+
+
+                            @*<div class="form-group" id="divAreaWise" style="margin-bottom: 0px;">
+
+                                    <div class="col-sm-6" style="margin-left:-14px;">
+
+                                    </div>
+
+                                    <div class="col-sm-4" style="margin-left:-14px;">
+
+                                    </div>
+                                </div>*@
+
+                            <div class="form-group row" style="margin-bottom: 0px;">
+                                <div class="col-sm-7">
+                                    Token Type
+                                    @Html.DropDownList("TokenType", new List<SelectListItem>
+                                        {
+                                            new SelectListItem {Text = "New", Value = "New"},
+                                            new SelectListItem {Text = "Old", Value = "Old"},
+                                        }, "Select Token Type", new { @class = "chosen-select form-control" })
+                                </div>
+
+                                <div class="col-sm-5">
+                                    Free Ticket
+                                    <input type="checkbox" class="ace-switch input-lg ace-switch-yesno bgc-purple-d1 text-grey-m2" id="chkStatus" onclick="UpdateStatus()" />
+                                    @Html.HiddenFor(model => model.Status, new { @class = "form-control", @placeholder = "Status", @id = "txtStatus" })
+                                </div>
+                            </div>
+
+                            <div class="form-group row" style="margin-bottom: 0px;">
+                                <div class="col-sm-7">
+                                    Department
+                                    @Html.DropDownListFor(model => model.DeptID, null, "Select Department", htmlAttributes: new { @id = "ddlDept", @class = "chosen-select form-control" })
+                                </div>
+                                <div class="col-sm-5">
+                                    Ward/Cabin
+                                    @Html.DropDownListFor(model => model.WardCabinID, null, "Select Ward", htmlAttributes: new { @class = "chosen-select form-control", @id = "ddlWard" })
+                                </div>
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0px;">
+                                Doctor
+                                @Html.DropDownList("DOC_ID", new SelectList(" "), "Select Doctor", htmlAttributes: new { @id = "ddlDoc", @class = "chosen-select form-control" })
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0px;">
+                                Project
+                                @Html.DropDownListFor(model => model.ProjectID, null, "Select Project", htmlAttributes: new { @id = "ddlProject", @class = "chosen-select form-control" })
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0px;">
+                                User
+                                @Html.DropDownListFor(model => model.UserID, null, "Select User", htmlAttributes: new { @id = "ddlUser", @class = "chosen-select form-control" })
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 0px;">
+                                Diagnosis
+                                @Html.DropDownList("DiagnosisID", new SelectList(" "), "Select Diagnosis", htmlAttributes: new { @id = "ddlDiagnosis", @class = "chosen-select form-control" })
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 5px;">
+                                Pharmacy Manufacturer
+                                @Html.DropDownListFor(model => model.ManufacturerID, null, "Select Manufacturer", htmlAttributes: new { @id = "ddlManufacturerID", @class = "chosen-select form-control" })
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- /.card-body -->
+            </div>
+            <!-- /.card -->
+        </div>
+        <!-- /.container-fluid -->
+    </section><!-- /.content -->
+</div>
+
+<script>
+
+    $(document).ready(function () {
+
+        var textbox = document.getElementById("txtStatus");
+        textbox.value = "N";
+
+        //load current date
+        var today = new Date();
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+        var yyyy = today.getFullYear();
+
+        today = mm + '/' + dd + '/' + yyyy;
+        $('#txtFromDate').val(today);
+        $('#txtToDate').val(today);
+
+        var TinyDatePicker = DateRangePicker.TinyDatePicker;
+        TinyDatePicker('#txtFromDate', {
+            mode: 'dp-below',
+        })
+
+        var TinyDatePicker = DateRangePicker.TinyDatePicker;
+        TinyDatePicker('#txtToDate', {
+            mode: 'dp-below',
+        })
+
+         if ('@TempData["Success"]' != "") {
+             toastr.success('@TempData["Success"]', 'Success');
+         }
+         else if ('@TempData["Warning"]' != "") {
+             toastr.warning('@TempData["Warning"]', 'Warning');
+         }
+            else if ('@TempData["Error"]' != "") {
+             toastr.error('@TempData["Error"]', 'Error');
+        }
+
+        //clear all search criteria
+        $("#txtFromDate").attr("disabled", false);
+        $("#txtToDate").attr("disabled", false);
+        $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+        $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+        $("#ddlDept").attr("disabled", true).trigger("chosen:updated");
+        $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+        $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+        $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+        $("#chkStatus").attr("disabled", true);
+        $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+        $("#AgeFrom").attr("disabled", true);
+        $("#AgeTo").attr("disabled", true);
+        $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+        $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+        $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+        $("#PatientID").attr("disabled", true);
+        $("#PatientID").val('');
+        $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+        $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+        $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+        $("#StartTime").attr("disabled", true);
+        $("#EndTime").attr("disabled", true);
+        $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+        $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+
+        $("#ddlDistrict").attr("disabled", true).trigger("chosen:updated");
+        $("#ddlUpazila").attr("disabled", true).trigger("chosen:updated");
+        $("#ddlUnion").attr("disabled", true).trigger("chosen:updated");
+        $("#txtNoOfPatient").attr("disabled", true).trigger("chosen:updated");
+        //$("#ddlCategory").attr("disabled", true).trigger("chosen:updated");
+
+        $("#ReportTypeID").change(function () {
+
+            var reporttypeid = $('#ReportTypeID').val();
+            
+            $("#ddlDistrict").attr("disabled", true).trigger("chosen:updated");
+            $("#ddlUpazila").attr("disabled", true).trigger("chosen:updated");
+            $("#ddlUnion").attr("disabled", true).trigger("chosen:updated");
+            $("#txtNoOfPatient").attr("disabled", true).trigger("chosen:updated");
+            $("#txtAdmissionID").attr("disabled", true).trigger("chosen:updated");
+
+            //OP Token Details Report
+            if (reporttypeid == 2) {
+                $("#txtFromDate").attr("disabled", false);
+                $("#txtToDate").attr("disabled", false);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", false).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", false);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+             // OP Token Distribution Summary, Details
+            else if (reporttypeid == 4 || reporttypeid == 5) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", false).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //Patient Token Statistic Details Report
+            else if (reporttypeid == 7) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", false);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", false);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            else if (reporttypeid == 8)
+            {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", false);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", false);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //Pre-Operative Advice Report,  out patient statistics by dept & doctor wise
+            else if (reporttypeid == 10 || reporttypeid == 53 || reporttypeid == 64) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                //$("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //Admission Details by Project
+            else if (reporttypeid == 40) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //OT Report, OT Details Report
+            else if (reporttypeid == 11 || reporttypeid == 12) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //User wise Collection Summary
+            else if (reporttypeid == 13) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", false).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //Service wise collection by service,tpe,dept,doc ,KEWA
+            else if (reporttypeid == 16 || reporttypeid == 55) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", false).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //OPD Daignosis/Age wise Report
+            else if (reporttypeid == 17) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", false).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", false);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", false);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //OP Physiotherapy Schedule Summary
+            else if (reporttypeid == 21) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", false).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //Patient wise Bill Register Report
+            else if (reporttypeid == 23) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", false);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //Service type, Doctor,Dept wise Collection Summary
+            else if (reporttypeid == 24 || reporttypeid == 25 || reporttypeid == 26 || reporttypeid == 65) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //OP Patient Details
+            else if (reporttypeid == 35) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", false);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", false);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", false);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", false);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //IP Medicine Request Summary to Pharmacy Patient wise, IP Medicine Request Details to Pharmacy, IP Medicine Request Summary to Pharmacy Ward wise
+            else if (reporttypeid == 33 || reporttypeid == 34 || reporttypeid == 36) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", false).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //Doctor wise treatment analysis
+            else if (reporttypeid == 42 || reporttypeid == 59 || reporttypeid == 60) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //Service ,type, Doctor,Dept wise Collection Summary
+            else if (reporttypeid == 43) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //monthly out patient statistic report
+            else if (reporttypeid == 44) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //monthly service wise statistics report
+            else if (reporttypeid == 46) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlDistrict").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUpazila").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUnion").attr("disabled", true).trigger("chosen:updated");
+                $("#txtNoOfPatient").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //Service type wise collection by type,dept,doc
+            else if (reporttypeid == 54) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlDistrict").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUpazila").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUnion").attr("disabled", true).trigger("chosen:updated");
+                $("#txtNoOfPatient").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //Docotr wise Total OT by range
+            else if (reporttypeid == 56) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlDistrict").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUpazila").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUnion").attr("disabled", true).trigger("chosen:updated");
+                $("#txtNoOfPatient").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //OP Docotr wise Total medicine advised by Manufacturer
+            else if (reporttypeid == 57 || reporttypeid == 58 || reporttypeid == 67) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlDistrict").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUpazila").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUnion").attr("disabled", true).trigger("chosen:updated");
+                $("#txtNoOfPatient").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID").val('M1081').trigger('chosen:updated');
+                $("#ddlManufacturerID").attr("disabled", false).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //Doctor wise Collection Summary all
+            else if (reporttypeid == 61 || reporttypeid == 70) {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlDistrict").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUpazila").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUnion").attr("disabled", true).trigger("chosen:updated");
+                $("#txtNoOfPatient").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            else if (reporttypeid == 38 || reporttypeid == 63 || reporttypeid == 71 || reporttypeid == 72 || reporttypeid == 73 || reporttypeid == 75)
+            {
+                $("#txtFromDate").attr("disabled", false);
+                $("#txtToDate").attr("disabled", false);
+
+                $("#ddlDistrict").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUpazila").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUnion").attr("disabled", true).trigger("chosen:updated");
+                $("#txtNoOfPatient").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                //$("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                //$("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            //Doctor,Dept wise Collection qty Summary KH comparative date
+            else if (reporttypeid == 66)
+            {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlDistrict").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUpazila").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUnion").attr("disabled", true).trigger("chosen:updated");
+                $("#txtNoOfPatient").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            else if (reporttypeid == 74) {
+                $("#txtFromDate").attr("disabled", false);
+                $("#txtToDate").attr("disabled", false);
+
+                $("#ddlDistrict").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUpazila").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUnion").attr("disabled", true).trigger("chosen:updated");
+                $("#txtNoOfPatient").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", false).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", false).trigger("chosen:updated");
+            }
+            else if (reporttypeid == 79)
+            {
+                $("#txtFromDate").attr("disabled", false);
+                $("#txtToDate").attr("disabled", false);
+
+                $("#ddlDistrict").attr("disabled", false).trigger("chosen:updated");
+                $("#ddlUpazila").attr("disabled", false).trigger("chosen:updated");
+                $("#ddlUnion").attr("disabled", false).trigger("chosen:updated");
+                $("#txtNoOfPatient").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", false).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", false).trigger("chosen:updated");
+            }
+            else if (reporttypeid == 83) {
+                $("#txtFromDate").attr("disabled", true);
+                $("#txtToDate").attr("disabled", true);
+                $("#txtAdmissionID").attr("disabled", false);
+
+                $("#ddlDistrict").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUpazila").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUnion").attr("disabled", true).trigger("chosen:updated");
+                $("#txtNoOfPatient").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+            else if (reporttypeid == 86) {
+                $("#txtFromDate").attr("disabled", false);
+                $("#txtToDate").attr("disabled", false);
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", false);
+            }
+            else if (reporttypeid == 87) {
+                $("#txtFromDate").attr("disabled", false);
+                $("#txtToDate").attr("disabled", false);
+                /*$("#PatientID").val('');*/
+                $("#CategoryID").attr("disabled", false);
+            }
+            else if (reporttypeid == 95) {
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", true).trigger("chosen:updated");
+            }
+            else if (reporttypeid == 96)
+            {
+           
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", false).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+            }
+            else {
+                $("#txtFromDate").attr("disabled", false);
+                //$('#txtFromDate').val(today);
+
+                $("#txtToDate").attr("disabled", false);
+                //$('#txtToDate').val(today);
+
+                $("#ddlDistrict").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUpazila").attr("disabled", true).trigger("chosen:updated");
+                $("#ddlUnion").attr("disabled", true).trigger("chosen:updated");
+                $("#txtNoOfPatient").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlOPServiceType")[0].selectedIndex = 0;
+                $("#ddlOPServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#TokenType")[0].selectedIndex = 0;
+                $("#TokenType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDept")[0].selectedIndex = 0;
+                $("#ddlDept").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $("#ddlDoc").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlProject")[0].selectedIndex = 0;
+                $("#ddlProject").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlUser")[0].selectedIndex = 0;
+                $("#ddlUser").attr("disabled", true).trigger("chosen:updated");
+
+                document.getElementById('chkStatus').checked = false;
+                $("#chkStatus").attr("disabled", true);
+
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $("#ddlDiagnosis").attr("disabled", true).trigger("chosen:updated");
+
+                $("#AgeFrom").val('');
+                $("#AgeFrom").attr("disabled", true);
+
+                $("#AgeTo").val('');
+                $("#AgeTo").attr("disabled", true);
+
+                $("#SummaryType")[0].selectedIndex = 0;
+                $("#SummaryType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlPT")[0].selectedIndex = 0;
+                $("#ddlPT").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientType")[0].selectedIndex = 0;
+                $("#PatientType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#PatientID").val('');
+                $("#PatientID").attr("disabled", true);
+
+                $("#ddlServiceType")[0].selectedIndex = 0;
+                $("#ddlServiceType").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlService")[0].selectedIndex = 0;
+                $("#ddlService").attr("disabled", true).trigger("chosen:updated");
+
+                $("#ddlWard")[0].selectedIndex = 0;
+                $("#ddlWard").attr("disabled", true).trigger("chosen:updated");
+
+                $("#StartTime").val('');
+                $("#StartTime").attr("disabled", true);
+
+                $("#EndTime").val('');
+                $("#EndTime").attr("disabled", true);
+
+                $("#ddlManufacturerID")[0].selectedIndex = 0;
+                $("#ddlManufacturerID").attr("disabled", true).trigger("chosen:updated");
+
+                $("#DischargeType")[0].selectedIndex = 0;
+                $("#DischargeType").attr("disabled", true).trigger("chosen:updated");
+            }
+        })
+
+        //load all active service
+
+        //$.get("/TokenReport/GetAllActiveService", function (data) {
+        //    console.log(data);
+        //    $("#ddlService").empty();
+        //    $("#ddlService").append('<option value="0">Select Service<option>');
+        //    $('#ddlService').trigger("chosen:updated");
+        //    $.each(data, function (index, row) {
+        //        $("#ddlService").append("<option value='" + row.ServiceID + "'>" + row.ServiceNameCharge + "</option>")
+        //        $('#ddlService').trigger("chosen:updated");
+        //    });
+        //});
+
+        $("#ddlServiceType").change(function () {
+
+            var serviceTypeID = $("#ddlServiceType").val();
+
+            if (serviceTypeID != "") {
+                $.get("/TokenReport/GetActiveServicebyType", { serviceTypeID: serviceTypeID }, function (data) {
+                    console.log(data);
+                    $("#ddlService").empty();
+                    $("#ddlService").append('<option value="0">Select Service<option>');
+                    $('#ddlService').trigger("chosen:updated");
+                    $.each(data, function (index, row) {
+                        $("#ddlService").append("<option value='" + row.ServiceID + "'>" + row.ServiceNameCharge + "</option>")
+                        $('#ddlService').trigger("chosen:updated");
+                    });
+                });
+            }
+            else {
+
+                $("#ddlService").empty();
+                $("#ddlService").append('<option value="0">Select Service<option>');
+                $('#ddlService').trigger("chosen:updated");
+            }
+        });
+
+        $('#ddlDistrict').change(function () {
+            $.get("/Upazila/GetAllActiveUpazilabyDistrictID", { DistrictID: $('#ddlDistrict').val() }, function (data) {
+                console.log(data);
+                $("#ddlUpazila").empty();
+                $("#ddlUpazila").append('<option value="0">Select Upazila<option>');
+                $('#ddlUpazila').trigger("chosen:updated");
+                $.each(data, function (index, row) {
+                    $("#ddlUpazila").append("<option value='" + row.UpazilaID + "'>" + row.UpazilaName + "</option>")
+                    $('#ddlUpazila').trigger("chosen:updated");
+                });
+            });
+        });
+
+        $('#ddlUpazila').change(function () {
+            $.get("/Union/GetAllActiveUnionbyUpazilaID", { upazilaID: $('#ddlUpazila').val() }, function (data) {
+                console.log(data);
+                $("#ddlUnion").empty();
+                $("#ddlUnion").append('<option value="0">Select Upazila<option>');
+                $('#ddlUnion').trigger("chosen:updated");
+                $.each(data, function (index, row) {
+                    $("#ddlUnion").append("<option value='" + row.UnionID + "'>" + row.UnionName + "</option>")
+                    $('#ddlUnion').trigger("chosen:updated");
+                });
+            });
+        });
+
+        $("#ddlDept").change(function () {
+
+            var DeptID = $("#ddlDept").val();
+
+            if (DeptID != "") {
+                $.get("/Doctor/GetAllDoctorbyDeptID", { DeptID: DeptID }, function (data) {
+                    console.log(data);
+                    $("#ddlDoc").empty();
+                    $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                    $('#ddlDoc').trigger("chosen:updated");
+                    $.each(data, function (index, row) {
+                        $("#ddlDoc").append("<option value='" + row.DOC_ID + "'>" + row.DOC_Name + "</option>")
+                        $('#ddlDoc').trigger("chosen:updated");
+                    });
+                });
+
+                // load diagnosis ddl by department
+
+                $.get("/Diagnosis/GetAllDaignosisbyDeptID", { DeptID: $("#ddlDept").val() }, function (data) {
+                    console.log(data);
+                    $("#ddlDiagnosis").empty();
+                    $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                    $('#ddlDiagnosis').trigger("chosen:updated");
+                    $.each(data, function (index, row) {
+                        $("#ddlDiagnosis").append("<option value='" + row.DiagnosisID + "'>" + row.DiagnosisTitle + "</option>")
+                        $('#ddlDiagnosis').trigger("chosen:updated");
+                    });
+                });
+            }
+            else {
+                $("#ddlDoc").empty();
+                $("#ddlDoc").append('<option value="0">Select Doctor<option>');
+                $('#ddlDoc').trigger("chosen:updated");
+                $("#ddlDiagnosis").empty();
+                $("#ddlDiagnosis").append('<option value="0">Select Diagnosis<option>');
+                $('#ddlDiagnosis').trigger("chosen:updated");
+            }
+        });
+
+    });
+
+    function UpdateStatus() {
+        // Get the checkbox
+        var checkBox = document.getElementById("chkStatus");
+        // Get the output text
+        var textbox = document.getElementById("txtStatus");
+
+        // If the checkbox is checked, display the output text
+        if (checkBox.checked == true) {
+            textbox.value = "Y";
+        }
+        else {
+            textbox.value = "N";
+        }
+    }
+    //show report in report viewer on new tab or in this page
+    function ReportViewer() {
+
+        $("#divLoader").show();
+
+        var reporttypeid = $('#ReportTypeID').val();
+        var fromdate = $('#txtFromDate').val();
+        var todate = $('#txtToDate').val();
+        var startTime = $('#StartTime').val();
+        var endTime = $('#EndTime').val();
+
+        if (reporttypeid == "0") {
+            toastr.warning("Select Report Type!");
+            $("#ReportTypeID").focus();
+            $("#divLoader").hide();
+            return;
+        }
+
+        if (fromdate == "") {
+            toastr.warning("Select From Date!");
+            $("#txtFromDate").focus();
+            $("#divLoader").hide();
+            return;
+        }
+
+        if (todate == "") {
+            toastr.warning("Select To Date!");
+            $("#txtToDate").focus();
+            $("#divLoader").hide();
+            return;
+        }
+
+        //get report criteria parameter
+        var opservicetypeid = $('#ddlOPServiceType').val();
+        var deptid = $('#ddlDept').val();
+        var deptname = $("#ddlDept :selected").text();
+        var docid = $('#ddlDoc').val();
+        var docname = $("#ddlDoc :selected").text();
+        var projectid = $('#ddlProject').val();
+        var userid = $('#ddlUser').val();
+        var username = $("#ddlUser :selected").text();
+        var tokentype = $('#TokenType').val();
+        var freeticket = $('#txtStatus').val();
+        var diagnosisid = $('#ddlDiagnosis').val();
+        var agefrom = $('#AgeFrom').val();
+        var ageto = $('#AgeTo').val();
+        var patienttype = $('#PatientType').val();
+        var patientid = $('#PatientID').val();
+        var servicetypeid = $('#ddlServiceType').val();
+        var serviceid = $('#ddlService').val();
+        var wardid = $('#ddlWard').val();
+        var summarytype = $('#SummaryType').val();
+        var manufacturerid = $('#ddlManufacturerID').val();
+        var manufacturername = $("#ddlManufacturerID :selected").text();
+        var dischargetype = $('#DischargeType').val();
+        var districtID = $('#ddlDistrict').val();
+        var noOfPatient = $('#txtNoOfPatient').val();
+        var upazilaID = $('#ddlUpazila').val();
+        var unionID = $('#ddlUnion').val();
+        var admissionID = $('#txtAdmissionID').val();
+        var categoryID = $('#ddlCategory').val();
+        var searchcriteria = "";
+
+        //token reports
+
+        if (reporttypeid == 2) {
+
+            if (opservicetypeid != "") {
+                if (searchcriteria == "") {
+                    searchcriteria = " t.OPServiceTypeID = '" + opservicetypeid + "'";
+                }
+                else { searchcriteria += " and t.OPServiceTypeID = '" + opservicetypeid + "'"; }
+            }
+            if (deptid != "") {
+                if (searchcriteria == "") {
+                    searchcriteria = " t.DeptID = '" + deptid + "'";
+                }
+                else { searchcriteria += " and t.DeptID = '" + deptid + "'"; }
+            }
+            if (docid != "" && docid != "0") {
+                if (searchcriteria == "") {
+                    searchcriteria = " t.DOC_ID = '" + docid + "'";
+                }
+                else { searchcriteria += " and t.DOC_ID = '" + docid + "'"; }
+            }
+            if (projectid != "") {
+                if (searchcriteria == "") {
+                    searchcriteria = " t.ProjectID = '" + projectid + "'";
+                }
+                else { searchcriteria += " and t.ProjectID = '" + projectid + "'"; }
+            }
+            if (userid != "") {
+                if (searchcriteria == "") {
+                    searchcriteria = " t.CreateUserID = '" + userid + "'";
+                }
+                else { searchcriteria += " and t.CreateUserID = '" + userid + "'"; }
+            }
+            if (tokentype != "") {
+                if (searchcriteria == "") {
+                    searchcriteria = " TokenType = '" + tokentype + "'";
+                }
+                else { searchcriteria += " and TokenType = '" + tokentype + "'"; }
+            }
+            if (freeticket == "Y") {
+                if (searchcriteria == "") {
+                    searchcriteria = " t.ProjectID != '0'";
+                }
+                else { searchcriteria += " and t.ProjectID != '0'"; }
+            }
+            if (fromdate != "" && todate != "") {
+                if (searchcriteria == "") {
+                    searchcriteria = " (TokenDate between '" + fromdate + "' and '" + todate + "' )";
+                }
+                else { searchcriteria += " and (TokenDate between '" + fromdate + "' and '" + todate + "') "; }
+            }
+        }
+        else if (reporttypeid == 5) {
+
+            if (opservicetypeid != "") {
+                if (searchcriteria == "") {
+                    searchcriteria = " t.OPServiceTypeID = '" + opservicetypeid + "'";
+                }
+                else { searchcriteria += " and t.OPServiceTypeID = '" + opservicetypeid + "'"; }
+            }
+            if (deptid != "") {
+                if (searchcriteria == "") {
+                    searchcriteria = " t.DeptID = '" + deptid + "'";
+                }
+                else { searchcriteria += " and t.DeptID = '" + deptid + "'"; }
+            }
+            if (docid != "" && docid != "0") {
+                if (searchcriteria == "") {
+                    searchcriteria = " t.DOC_ID = '" + docid + "'";
+                }
+                else { searchcriteria += " and t.DOC_ID = '" + docid + "'"; }
+            }
+            if (userid != "") {
+                if (searchcriteria == "") {
+                    searchcriteria = " t.CreateUserID = '" + userid + "'";
+                }
+                else { searchcriteria += " and t.CreateUserID = '" + userid + "'"; }
+            }
+            if (fromdate != "" && todate != "") {
+                if (searchcriteria == "") {
+                    searchcriteria = " (TokenDate between '" + fromdate + "' and '" + todate + "' )";
+                }
+                else { searchcriteria += " and (TokenDate between '" + fromdate + "' and '" + todate + "') "; }
+            }
+        }
+        else if (reporttypeid == 17) {
+            if (deptid == "") {
+                toastr.warning("Select Department!");
+                $("#ddlDept").focus();
+                $("#divLoader").hide();
+                return;
+            }
+            else if (diagnosisid == 0) {
+                toastr.warning("Select Diagnosis!");
+                $("#ddlDiagnosis").focus();
+                $("#divLoader").hide();
+                return;
+            }
+        }
+
+        if (reporttypeid == 2 || reporttypeid == 5) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&searchCriteria=" + searchcriteria + "");
+        }
+        else if (reporttypeid == 4) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&opServicetypeID=" + opservicetypeid + "&deptID=" + deptid + "&docID=" + docid + "&userID=" + userid + "");
+        }
+        else if (reporttypeid == 7) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&deptID=" + deptid + "&ageFrom=" + agefrom + "&ageTo=" + ageto + "");
+        }
+        else if (reporttypeid == 8) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&ageFrom=" + agefrom + "&ageTo=" + ageto + "");
+        }
+        else if (reporttypeid == 10 || reporttypeid == 64) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&deptID=" + deptid + "");
+        }
+        else if (reporttypeid == 40) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&deptID=" + deptid + "&projectID=" + projectid);
+        }
+        else if (reporttypeid == 11 || reporttypeid == 12) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&patientType=" + patienttype + "&deptID=" + deptid + "&deptName=" + deptname + "&docID=" + docid + "&docName=" + docname + "&serviceId=" + serviceid + "&serviceTypeID=" + servicetypeid);
+        }
+        else if (reporttypeid == 13) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&userID=" + userid + "");
+        }
+        else if (reporttypeid == 16 || reporttypeid == 55) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&serviceId=" + serviceid + "&serviceTypeID=" + servicetypeid + "&deptID=" + deptid + "&deptName=" + deptname + "&docID=" + docid + "&docName=" + docname + "&userID=" + userid + "&userName=" + username);
+        }
+        else if (reporttypeid == 17) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&diagnosisID=" + diagnosisid + "&ageFrom=" + agefrom + "&ageTo=" + ageto + "");
+        }
+        else if (reporttypeid == 21) {
+            var ptid = $('#ddlPT').val();
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&ptID=" + ptid + "");
+        }
+        else if (reporttypeid == 23) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&patientType=" + patienttype + "&patientId=" + patientid + "");
+        }
+        else if (reporttypeid == 24 || reporttypeid == 25 || reporttypeid == 26 || reporttypeid == 65) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&patientType=" + patienttype + "&serviceTypeID=" + servicetypeid + "&deptID=" + deptid + "&deptName=" + deptname + "&docID=" + docid + "&docName=" + docname + "&summaryType=" + summarytype);
+        }
+        else if (reporttypeid == 31) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&patientType=" + patienttype + "&userID=" + userid + "&projectID=" + projectid);
+        }
+        else if (reporttypeid == 32) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&patientType=" + patienttype + "&userID=" + userid + "&projectID=" + projectid);
+        }
+        else if (reporttypeid == 35) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&deptID=" + deptid + "&ageFrom=" + agefrom + "&ageTo=" + ageto + "&startTime=" + startTime + "&endTime=" + endTime);
+        }
+        else if (reporttypeid == 33 || reporttypeid == 34 || reporttypeid == 36) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&wardId=" + wardid);
+        }
+        else if (reporttypeid == 42 || reporttypeid == 59 || reporttypeid == 60) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&patientType=" + patienttype + "&serviceTypeID=" + servicetypeid + "&deptID=" + deptid + "&deptName=" + deptname + "&docID=" + docid + "&docName=" + docname);
+        }
+        else if (reporttypeid == 43) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&patientType=" + patienttype + "&serviceID=" + serviceid + "&serviceTypeID=" + servicetypeid + "&deptID=" + deptid + "&deptName=" + deptname + "&docID=" + docid + "&docName=" + docname + "&summaryType=" + summarytype);
+        }
+        else if (reporttypeid == 44) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&tokenType=" + tokentype);
+        }
+        else if (reporttypeid == 46) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&patientType=" + patienttype);
+        }
+        else if (reporttypeid == 53) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&tokenType=" + tokentype + "&deptID=" + deptid + "&docID=" + docid);
+        }
+        else if (reporttypeid == 54) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&serviceTypeID=" + servicetypeid + "&deptID=" + deptid + "&deptName=" + deptname + "&docID=" + docid + "&docName=" + docname);
+        }
+        else if (reporttypeid == 56) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&deptID=" + deptid + "&deptName=" + deptname + "&docID=" + docid + "&docName=" + docname);
+        }
+        else if (reporttypeid == 57 || reporttypeid == 58 || reporttypeid == 67) {
+
+            if (manufacturerid == "") {
+                toastr.warning("Select Manufacturer!");
+                $("#ddlManufacturerID").focus();
+                $("#divLoader").hide();
+                return;
+            }
+
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&deptID=" + deptid + "&docID=" + docid + "&manufacturerID=" + manufacturerid + "&manufacturerName=" + manufacturername);
+        }
+        else if (reporttypeid == 61 || reporttypeid == 70) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&patientType=" + patienttype + "&deptID=" + deptid + "&deptName=" + deptname + "&docID=" + docid + "&docName=" + docname + "&summaryType=" + summarytype);
+        }
+        else if (reporttypeid == 38 || reporttypeid == 63 || reporttypeid == 71 || reporttypeid == 72 || reporttypeid == 73 || reporttypeid == 75) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&deptID=" + deptid + "&docID=" + docid);
+        }
+        else if (reporttypeid == 66) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&deptID=" + deptid + "&deptName=" + deptname + "&docID=" + docid + "&docName=" + docname + "&summaryType=" + summarytype);
+        }
+        else if (reporttypeid == 74) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&wardId=" + wardid + "&dischargeType=" + dischargetype);
+        }
+        else if (reporttypeid == 76 || reporttypeid == 77) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate);
+        }
+        else if (reporttypeid == 79) {
+            if (districtID == '' || districtID == 'x')
+            {
+                toastr.error('District is required.');
+                $("#divLoader").hide();
+                return;
+            }
+            if (noOfPatient == '' || noOfPatient == 'x') {
+                toastr.error('No. of patient is required.');
+                $("#divLoader").hide();
+                return;
+            }
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&districtID=" + districtID + "&noOfPatient=" + noOfPatient + "&upazilaID=" + upazilaID + "&unionID=" + unionID);
+        }
+        else if (reporttypeid == 83)
+        {
+            if (admissionID == '')
+            {
+                toastr.error('Admission ID is required.');
+                $("#divLoader").hide();
+                return;
+            }
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&admissionID=" + admissionID);
+        }
+        else if (reporttypeid == 84)
+        {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid);
+
+        }
+        else if (reporttypeid == 86) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&patientId=" + patientid);
+
+        }
+        else if (reporttypeid == 87) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&categoryId=" + categoryID);
+
+        }
+        else if (reporttypeid == 95) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&userID=" + userid);
+
+        }
+        else if (reporttypeid == 96) {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&deptID=" + deptid);
+
+        }
+        else   //date to date report
+        {
+            javascript: window.open("../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate);
+        }
+
+        //load report in frame report viewer
+        //document.getElementById("reportFrame").src = "../../Reports/HMSReports/HMSReportViewer.aspx?reportTypeId=" + reporttypeid + "&fromDate=" + fromdate + "&toDate=" + todate + "&searchCriteria=" + searchcriteria + "&deptID=" + deptid + "&docID=" + docid + "&userID=" + userid + "";
+        //    $("#divReport").show();
+        $("#divLoader").hide();
+    }
+
+</script>
+
+<script>
+    jQuery(function ($) {
+        var TinyDatePicker = DateRangePicker.TinyDatePicker;
+        TinyDatePicker('#txtFromDate', {
+            mode: 'dp-below',
+        })
+            .on('statechange', function (ev) {
+
+            })
+        TinyDatePicker('#txtToDate', {
+            mode: 'dp-below',
+        })
+            .on('statechange', function (ev) {
+
+            })
+    })
+</script>

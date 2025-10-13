@@ -1,0 +1,16 @@
+public List<VM_EyeStatistics> GetGenderWiseSummary(DateTime fromDate, DateTime toDate)
+{
+    try
+    {
+        db.Database.CommandTimeout = 800;
+        var _fromDate = new SqlParameter("@FromDate", fromDate);
+        var _toDate = new SqlParameter("@ToDate", toDate);
+
+        string SP_SQL = "HMS_Get_Gender_Wise_AdmissionSummarybyDeptDate @FromDate,@ToDate";
+        return (db.Database.SqlQuery<VM_EyeStatistics>(SP_SQL, _fromDate, _toDate)).ToList();
+    }
+    catch (Exception ex)
+    {
+        throw new Exception(ex.Message.ToString());
+    }
+}
