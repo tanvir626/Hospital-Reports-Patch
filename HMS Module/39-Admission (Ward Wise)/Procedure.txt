@@ -1,0 +1,110 @@
+USE [KH_HMSERP]
+GO
+/****** Object:  StoredProcedure [dbo].[HMS_GetAdmissionSummarybyWardDate]    Script Date: 10/19/2025 8:24:41 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER PROCEDURE [dbo].[HMS_GetAdmissionSummarybyWardDate]
+    @ReportDate DATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        w.DeptID,
+        d.DeptName,
+        b.WardCabinID,
+        w.WardCabinName,
+
+       
+        COUNT(DISTINCT CASE 
+            WHEN ad.AdmitDate < @ReportDate 
+                 AND (ad.IsDischarged = 'N' OR ad.DischargeDate >= @ReportDate)
+            THEN ad.AdmissionId END
+        ) AS CurrentAdmitted,
+
+      
+        COUNT(DISTINCT CASE 
+            WHEN CAST(ad.AdmitDate AS DATE) = @ReportDate 
+            THEN ad.AdmissionId END
+        ) AS NewAdmission,
+
+ 
+        COUNT(DISTINCT CASE 
+            WHEN CAST(ad.DischargeDate AS DATE) = @ReportDate 
+            THEN ad.AdmissionId END
+        ) AS Discharged,
+
+        -- Total Admitted = current + new - discharged
+        (
+            COUNT(DISTINCT CASE 
+                WHEN ad.AdmitDate < @ReportDate 
+                     AND (ad.IsDischarged = 'N' OR ad.DischargeDate >= @ReportDate)
+                THEN ad.AdmissionId END
+            )
+            +
+            COUNT(DISTINCT CASE 
+                WHEN CAST(ad.AdmitDate AS DATE) = @ReportDate 
+                THEN ad.AdmissionId END
+            )
+            -
+            COUNT(DISTINCT CASE 
+                WHEN CAST(ad.DischargeDate AS DATE) = @ReportDate 
+                THEN ad.AdmissionId END
+            )
+        ) AS TotalAdmittedPatient,
+        (
+    COUNT(DISTINCT CASE 
+        WHEN p.Patient_Gender = 'Male'
+             AND ad.AdmitDate < @ReportDate 
+             AND (ad.IsDischarged = 'N' OR ad.DischargeDate >= @ReportDate)
+        THEN ad.AdmissionId END
+    )
+    +
+    COUNT(DISTINCT CASE 
+        WHEN p.Patient_Gender = 'Male'
+             AND CAST(ad.AdmitDate AS DATE) = @ReportDate 
+        THEN ad.AdmissionId END
+    )
+    -
+    COUNT(DISTINCT CASE 
+        WHEN p.Patient_Gender = 'Male'
+             AND CAST(ad.DischargeDate AS DATE) = @ReportDate 
+        THEN ad.AdmissionId END
+    )
+) AS TotalMale,
+
+(
+    COUNT(DISTINCT CASE 
+        WHEN p.Patient_Gender = 'Female'
+             AND ad.AdmitDate < @ReportDate 
+             AND (ad.IsDischarged = 'N' OR ad.DischargeDate >= @ReportDate)
+        THEN ad.AdmissionId END
+    )
+    +
+    COUNT(DISTINCT CASE 
+        WHEN p.Patient_Gender = 'Female'
+             AND CAST(ad.AdmitDate AS DATE) = @ReportDate 
+        THEN ad.AdmissionId END
+    )
+    -
+    COUNT(DISTINCT CASE 
+        WHEN p.Patient_Gender = 'Female'
+             AND CAST(ad.DischargeDate AS DATE) = @ReportDate 
+        THEN ad.AdmissionId END
+    )
+) AS TotalFemale
+        
+
+
+    FROM HMS_IP_Admission ad
+    INNER JOIN HMS_Patient p ON ad.PatientID = p.PatientID
+    INNER JOIN HMS_IP_Bed b ON ad.BedID = b.BedID
+    INNER JOIN HMS_IP_WardCabin w ON b.WardCabinID = w.WardCabinID
+    LEFT JOIN HMS_Department d ON w.DeptID = d.DeptID
+
+    GROUP BY w.DeptID, d.DeptName, b.WardCabinID, w.WardCabinName
+    ORDER BY w.WardCabinName;
+END
