@@ -1,0 +1,13 @@
+ public List<VM_GenderSummery> DischargeDetailbyDate_GenderSummery(DateTime startDate, DateTime endDate)
+ {
+     db.Database.CommandTimeout = 800;
+     List<VM_GenderSummery> dataList;
+
+     var _startDate = new SqlParameter("@FromDate", startDate);
+     var _endDate = new SqlParameter("@ToDate", endDate);
+
+     string SP_SQL = "HMS_Rpt_DischargeDetailbyDate_GenderSummery @FromDate, @ToDate";
+     dataList = (db.Database.SqlQuery<VM_GenderSummery>(SP_SQL, _startDate, _endDate)).ToList();
+
+     return dataList;
+ }

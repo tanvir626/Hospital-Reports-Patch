@@ -1,0 +1,115 @@
+ public List<VM_Voucher> GetSubsidiaryLedgerForLiabilities(int accountID, DateTime startDate, DateTime endDate)
+ {
+     #region Get Opening Balance
+     var _vchTable1 = new SqlParameter("@VoucherTable", "ACC_VoucherKH");
+     var _accountID = new SqlParameter("@AccountID", accountID);
+     var _tillDate = new SqlParameter("@TillDate", startDate);
+
+     string SP_SQL1 = "AC_GetOpeningBalance_Offline @VoucherTable, @AccountID, @TillDate";
+     var balanceInfo = (db.Database.SqlQuery<VM_Voucher>(SP_SQL1, _vchTable1, _accountID, _tillDate)).FirstOrDefault();
+
+     var accInfo = GetAccountByID(accountID); //db.ACC_Account.Where(x => x.AccountID == accountID).FirstOrDefault();
+
+     //var totalDebit = balanceInfo.DebitAmount;
+     //var totalCredit = balanceInfo.CreditAmount;
+     var openingBalance = balanceInfo.ClosingBalance;
+
+     if (openingBalance == null) { openingBalance = 0; }
+
+     string balanceType = "";
+     VM_Voucher openingRow = new VM_Voucher();
+     openingRow.DebitAmount = 0;
+     openingRow.CreditAmount = 0;
+     if (openingBalance > 0)
+     {
+         balanceType = "Cr.";
+         openingRow.CreditAmount = openingBalance;
+         openingRow.Balance = openingBalance;
+     }
+     else
+     {
+
+         balanceType = "Dr.";
+         openingBalance = openingBalance * (-1);
+         openingRow.DebitAmount = openingBalance;
+         openingRow.Balance = openingBalance * (-1);
+
+
+     }
+
+
+     openingRow.AccountID = accountID;
+     openingRow.AccountName = "Opening Balance";
+     openingRow.Description = "**** OPENING BALANCE ****";
+
+     openingRow.BalanceType = balanceType;
+
+     #endregion
+
+     #region Get Main Data
+     var _accTable = new SqlParameter("@AccTable", "ACC_AccountKH");
+     var _vchTable = new SqlParameter("@VoucherTable", "ACC_VoucherKH");
+     var _accID = new SqlParameter("@AccountID", accountID);
+     var _fromDate = new SqlParameter("@FromDate", startDate);
+     var _toDate = new SqlParameter("@ToDate", endDate);
+
+     string SP_SQL = "ACC_GetSubsidiaryLedgerData @AccTable, @VoucherTable, @AccountID, @FromDate, @ToDate";
+     var data = (db.Database.SqlQuery<VM_Voucher>(SP_SQL, _accTable, _vchTable, _accID, _fromDate, _toDate)).ToList();
+
+     for (int i = 0; i < data.Count; i++)
+     {
+         if (data[i].ChequeNo == "")
+         {
+             data[i].ChequeDate = null;
+             data[i].ChequeNo = "";
+         }
+
+         if (i == 0)
+         {
+             if (data[i].CreditAmount > 0 && !data[i].VoucherNumber.Contains("JV"))
+             {
+                 data[i].Balance = openingBalance + data[i].CreditAmount - data[i].DebitAmount;
+             }
+             else
+             {
+                 data[i].Balance = (openingBalance) + data[i].CreditAmount - data[i].DebitAmount;
+             }
+         }
+         else
+         {
+             data[i].Balance = data[i - 1].Balance + data[i].CreditAmount - data[i].DebitAmount;
+         }
+     }
+
+     #endregion
+
+     #region Set Closing Balance
+     data.Insert(0, openingRow);
+
+     var closingBalance = data[data.Count - 1].Balance;
+
+     VM_Voucher closingRow = new VM_Voucher();
+
+     //if (closingBalance < 0)
+     //{
+     //    balanceType = "Cr.";
+     //    closingBalance = closingBalance * (-1);
+     //}
+     //else
+     //{
+     //    balanceType = "Dr.";
+     //}
+
+     closingRow.AccountID = accountID;
+     closingRow.AccountName = accInfo.AccountName;
+     closingRow.Description = "**** CLOSING BALANCE ****";
+     closingRow.DebitAmount = 0;
+     closingRow.CreditAmount = 0;
+     closingRow.Balance = closingBalance;
+     closingRow.BalanceType = balanceType;
+
+     data.Add(closingRow);
+     #endregion
+
+     return data;
+ }

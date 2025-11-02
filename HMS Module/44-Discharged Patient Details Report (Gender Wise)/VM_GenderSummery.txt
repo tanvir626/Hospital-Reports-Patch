@@ -1,0 +1,15 @@
+
+using System;
+
+namespace Model.ViewModel;
+
+public class VM_GenderSummery
+{
+    public DateTime Dates { get; set; }
+
+    public int Total { get; set; }
+
+    public int Total_Male { get; set; }
+
+    public int Total_Female { get; set; }
+}

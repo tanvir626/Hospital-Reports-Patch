@@ -1,61 +1,3 @@
-private void LoadSubsidiaryLedger(int accountID, DateTime startDate, DateTime endDate)
-{
-    ReportViewer1.ProcessingMode = ProcessingMode.Local;
-    ReportViewer1.LocalReport.ReportPath = Server.MapPath("~/bin/Reports/AccReports/Rpt_SubsidiaryLedger.rdlc");
-
-    var result = account.GetSubsidiaryLedgerNew(accountID, startDate, endDate);
-    if (result.Count == 0)
-    {
-        return;
-    }
-
-    var accInfo = account.GetAccountByID(accountID); //db.ACC_Account.Where(x => x.AccountID == accountID).FirstOrDefault();
-
-    var company = db.HMS_Company.Where(x => x.CompanyID == utilityService.CompanyID).FirstOrDefault();
-
-    string reportTitle = "Subsidiary Ledger";
-
-    string dateRange = "";
-    if (startDate < endDate) { dateRange = "Date from: " + startDate.ToString("dd-MM-yyyy") + " to " + endDate.ToString("dd-MM-yyyy"); }
-    else { dateRange = "Date: " + startDate.ToString("dd-MM-yyyy"); }
-
-    ReportParameter prm_1 = new ReportParameter("dateRange", dateRange);
-    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_1 });
-
-    ReportParameter prm_2 = new ReportParameter("companyName", company.CompanyName);
-    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_2 });
-
-    ReportParameter prm_3 = new ReportParameter("companyAddress", company.Company_Address);
-    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_3 });
-
-    ReportParameter prm_4 = new ReportParameter("companyPhone", company.Company_Phone);
-    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_4 });
-
-    ReportParameter prm_5 = new ReportParameter("reportTitle", reportTitle);
-    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_5 });
-
-    ReportParameter prm_6 = new ReportParameter("accountCode", accInfo.AccountCode.ToString());
-    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_6 });
-
-    ReportParameter prm_7 = new ReportParameter("AccountName", accInfo.AccountName);
-    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_7 });
-
-    ReportParameter prm_p = new ReportParameter("printedBy", utilityService.UserID);
-    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_p });
-
-    int count = result.Count - 1;
-    decimal balance = result[count].Balance ?? 0;
-
-    ReportParameter prm_cb = new ReportParameter("closingBalance", balance.ToString("0.00"));
-    ReportViewer1.LocalReport.SetParameters(new ReportParameter[] { prm_cb });
-
-    ReportDataSource datasource = new ReportDataSource("DS_Account", result);
-
-    ReportViewer1.LocalReport.DataSources.Clear();
-    ReportViewer1.LocalReport.DataSources.Add(datasource);
-
-    ReportViewer1.LocalReport.Refresh();
-}
 public List<VM_Voucher> GetSubsidiaryLedgerNew(int accountID, DateTime startDate, DateTime endDate)
 {
     #region Get Opening Balance
@@ -63,21 +5,28 @@ public List<VM_Voucher> GetSubsidiaryLedgerNew(int accountID, DateTime startDate
     var _accountID = new SqlParameter("@AccountID", accountID);
     var _tillDate = new SqlParameter("@TillDate", startDate);
 
-    string SP_SQL1 = "AC_GetOpeningBalance @VoucherTable, @AccountID, @TillDate";
-    var balanceInfo = (db.Database.SqlQuery<VM_Voucher>(SP_SQL1, _vchTable1, _accountID, _tillDate)).FirstOrDefault();
-
     var accInfo = GetAccountByID(accountID); //db.ACC_Account.Where(x => x.AccountID == accountID).FirstOrDefault();
 
     string str = accInfo.AccountCode.ToString().Substring(0, 1);
-    if (str == "2")
+    ///xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+    VM_Voucher balanceInfo = null;
+    if (str == "2" || str=="4")
     {
+        string SP_SQL1 = "AC_GetOpeningBalance_Offline @VoucherTable, @AccountID, @TillDate";
+        balanceInfo = (db.Database.SqlQuery<VM_Voucher>(SP_SQL1, _vchTable1, _accountID, _tillDate)).FirstOrDefault();
         List<VM_Voucher> ledgerData = GetSubsidiaryLedgerForLiabilities(accountID, startDate, endDate);
         return ledgerData;
     }
+    else
+    {
+        string SP_SQL1 = "AC_GetOpeningBalance @VoucherTable, @AccountID, @TillDate";
+        balanceInfo = (db.Database.SqlQuery<VM_Voucher>(SP_SQL1, _vchTable1, _accountID, _tillDate)).FirstOrDefault();
+    }
+    ///xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-    //var totalDebit = balanceInfo.DebitAmount;
-    //var totalCredit = balanceInfo.CreditAmount;
-    var openingBalance = balanceInfo.ClosingBalance;
+        //var totalDebit = balanceInfo.DebitAmount;
+        //var totalCredit = balanceInfo.CreditAmount;
+        var openingBalance = balanceInfo.ClosingBalance;
 
     if (openingBalance == null) { openingBalance = 0; }
 
